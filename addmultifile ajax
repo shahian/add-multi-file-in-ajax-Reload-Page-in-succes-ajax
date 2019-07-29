@@ -1,0 +1,163 @@
+    <div id="CustomerAgentuploaders">
+    @Html.TextBoxFor(x => x.CustomerAgentModel.RoznamePic, new { type = "file", multiple = "true" })
+    <span id="spnFile" style="float:left;color:#FF0000"></span>
+    </div>
+                                    
+    <div class="control-section" style="padding: 0px;">
+        <div id="CustomerAgentselectedFiles">
+
+        </div>
+    </div>
+    <button type="button" id="saveAgent" class="btn btn-success pull-right " onclick="saveAgent($('#CSModal').attr('data-id'))" data-dismiss="modal">ثبت</button>
+    <script>
+    function saveAgent(id) {
+        if (ramz == 1) {
+            if (...)
+                alert(".... سند را وارد نمایید");
+        } else {
+            // Checking whether FormData is available in browser
+            if (window.FormData !== undefined) {
+               
+                var files = $("#CustomerAgentModel_RoznamePic").get(0).files;
+                alert(files.length);
+                // Create FormData object
+                var fileData = new FormData();
+
+                // Looping over all files and add it to FormData object
+                for (var i = 0; i < files.length; i++) {
+                    fileData.append("#CustomerAgentModel_RoznamePic", files[i]);
+                }
+            }
+            else {
+                alert("اطلاعات صحیح نمی باشد.");
+            }
+           
+            fileData.append('agentLastName', $('#CustomerAgentModel_agentLastName').val());
+            fileData.append('agentFirstName', $('#CustomerAgentModel_agentFirstName').val());
+            fileData.append('agentFatherName', $('#CustomerAgentModel_agentFatherName').val());
+            fileData.append('AgentAccountNumber', $('#CustomerAgentModel_AgentAccountNumber').val());
+            fileData.append('idd', id);
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AddSecondagent", "CustomerSandogh")',
+                contentType: false, // Not to set any content header
+                processData: false, // Not to process data
+                dataType: "json",
+                enctype: 'multipart/form-data',
+                data: fileData,
+                success: function (result) {
+                    if (result.isExist==false) {
+                        setTimeout(function () {// wait for 2 secs(2)
+                            location.reload(); // then reload the page.(3)
+                        }, 2000); 
+                    reloader();
+                    } else {
+                        setTimeout(function () {// wait for 2 secs(2)
+                            location.reload(); // then reload the page.(3)
+                        }, 2000); 
+                        alert("نام فایل تکراری میباشد!!!!!");
+                    }
+                },
+                error: function (err) {
+                    alert("اطلاعات صحیح111 نمی باشد.");
+                }
+            });
+        }
+      
+    };
+    
+    ////////////////////////////////////////multi file selected/////////////////////////
+    
+    var Agentfiles;
+    var AgentstoredFiles = [];
+    var upc = 0;
+    var Agentupc = 0;
+
+       $(function () {
+
+        $(":file").attr('title', '  ');
+          var $loading = $('#AgentloadingDiv').hide();
+
+           $("input[id^='CustomerAgentModel_RoznamePic']").change(function (e) {
+            AgentdoReCreate(e);
+        });
+
+           AgentselDiv = $("#CustomerAgentselectedFiles");
+    });
+
+
+    function AgentdoReCreate(e) {
+        Agentupc = Agentupc + 1;
+        AgenthandleFileSelect(e,Agentupc);
+    }
+
+
+    function AgenthandleFileSelect(e, Agentupc)
+    {
+
+        //selDiv.innerHTML = ""; storedFiles = [];
+        AgentselDiv = document.querySelector("#CustomerAgentselectedFiles");
+
+        if (!e.target.files) return;
+
+        //selDiv.innerHTML = "";
+        Agentfiles = e.target.files;
+
+        for (var i = 0; i < Agentfiles.length; i++) {
+            //if (i == 0) { selDiv.innerHTML = ""; storedFiles = []; }
+            var Agentf = Agentfiles[i];
+            var AgenttempStored = $("#CustomerAgentModel_RoznamePicName").val();
+
+
+
+
+            if (AgenttempStored.includes(Agentf.name)) {
+
+                alert("فایل تکراری می باشد");
+                return;
+            } else {
+                AgentselDiv.innerHTML += "<div>" + Agentf.name + "<a onclick='AgentremoveAtt(this)' class='ace-icon fa fa-times  btn-delete' style='color:red;'> </a></div>";
+                AgentstoredFiles.push(Agentf.name);
+                @*$('#@Html.IdFor(i => i.AgentRoznamePicName)').val(AgentstoredFiles);*@
+                $("#CustomerAgentModel_RoznamePicName").attr("Agentfiles", AgentstoredFiles);
+                $("input[id^='CustomerAgentModel_RoznamePic']").hide();
+                $('<input>').attr({
+                    type: 'file',
+                    multiple: 'multiple',
+                    id: 'CustomerAgentModel_RoznamePic' + upc,
+                    class: 'fUpload',
+                    //name: 'AgentfileUpload',
+                    name: Agentf.name,
+                    style: 'float: left',
+                    title: '  ',
+                    onchange: "AgentdoReCreate(event)"
+
+                }).appendTo('#CustomerAgentuploaders');
+
+            }
+        }
+
+    }
+
+    function AgentremoveAtt(t)
+    {
+
+        var AgentserEle1 = $(t).parent().text().slice(0, -1);
+        var Agentindex = AgentstoredFiles.indexOf(AgentserEle1);
+
+        if (Agentindex !== -1) {
+            AgentstoredFiles.splice(Agentindex, 1);
+        }
+        $(t).parent().remove();
+        $('#@Html.IdFor(i => i.CustomerAgentModel.RoznamePicName)').val(AgentstoredFiles);
+
+
+        //$(".fUpload").each(function () {
+        //    var _this = this;
+        //    if ($(_this).attr("name") == serEle1)
+        //        $(_this).remove();
+
+        //});
+    }
+</script>
