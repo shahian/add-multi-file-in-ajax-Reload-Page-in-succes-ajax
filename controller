@@ -1,0 +1,102 @@
+ [HttpPost]
+        public ActionResult AddSecondagent(Agentmodel agentmodel)
+        {
+            string fileName = "";
+            string OrginalFileName = "";
+            string fname = "";
+            bool isExist;
+            string returnText = MainResources.InternalErrorMessage;
+            HttpFileCollectionBase files = Request.Files;
+            if (Request.Files.Count > 0)
+            {
+                try
+                {
+                    for (int i = 0; i < files.Count; i++)
+                    {
+                        HttpPostedFileBase file = files[i];
+                        if (Request.Browser.Browser.ToUpper() == "IE" || Request.Browser.Browser.ToUpper() == "INTERNETEXPLORER")
+                        {
+                            string[] testfiles = file.FileName.Split(new char[] { '\\' });
+                            fname = testfiles[testfiles.Length - 1];
+                        }
+                        else
+                        {
+                            fname = file.FileName;
+                        }
+                        OrginalFileName = fname;
+                        var allowedExtensions = new[] { ".jpg", ".png" };
+                        var fileExtension = Path.GetExtension(fname).ToLower();
+
+                        string path = Server.MapPath("~/Areas/SandoghAmanat/Content/SandoghLegalRoznameImage/");
+                        if (!Directory.Exists(path/*BasePath + FolderPath*/))
+                            Directory.CreateDirectory(path/*BasePath + FolderPath*/);
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            returnText = ModelResources.CheckFileType;
+                            return Json(new { ModalText = "فرمت PDF ، jpg و  png قابل قبول می باشد." });
+                        }
+                        fname = Path.Combine(Server.MapPath("~/Areas/SandoghAmanat/Content/SandoghLegalRoznameImage/"), fname);
+                        string pathfileName = fname;
+                        FileInfo fi = new FileInfo(pathfileName);
+                        if (!fi.Exists)
+                        {
+                            file.SaveAs(fname);
+
+                        }
+                        else
+                        {
+                            return Json(new { isExist = true });
+
+                        }
+                        
+                        //if (fname.Contains(OrginalFileName))
+                        //{
+                        //    fname = AddSuffix(fname, out fileName);
+                        //}
+                     
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    return Json("اطلاعات صحیح نمی باشد.");
+                }
+            }
+            if (agentmodel.agentNationalId == null && agentmodel.LegalagentNationalId == null)
+            {
+                string resultText = "مشخصات شخص حقیقی یا حقوقی را وارد نمایید.";
+                bool resultValue = false;
+                return Json(new { Result = resultValue, ModalText = resultText });
+            }
+            if (agentmodel.agentType == 0)
+            {
+                string resultText = "نوع رابط را مشخص کنید";
+                bool resultValue = false;
+                return Json(new { Result = resultValue, ModalText = resultText });
+            }
+            else
+            {
+                Random r = new Random();
+                var agent = sandoghCustomerAgentServices.GetById(agentmodel.idd);
+
+                S
+                agentCustomer.Signature = agentmodel.Signature;
+                agentCustomer.DocumentId = agentmodel.DocumentId;
+                agentCustomer.IsAgent = agentmodel.IsAgent;
+                agentCustomer.LegalNationalId = agentmodel.LegalagentNationalId;
+                agentCustomer.CompanyName = agentmodel.AgentCompanyName;
+                agentCustomer.CompanyAddress = agentmodel.AgentCompanyAddress;
+                sandoghCustomerAgentServices.Insert(agentCustomer);
+
+                for (int i = 0; i < files.Count; i++)
+                {
+                    AgentSandoghCustomerRoznamePic agentSandoghCustomerRoznamePic = new AgentSandoghCustomerRoznamePic();
+                    agentSandoghCustomerRoznamePic.Name = files[i].FileName;
+                    agentSandoghCustomerRoznamePic.SandoghCustomerAgentId = agentCustomer.Id;
+                    agentSandoghCustomerRoznamePic.IsDeleted = false;
+                    agentSandoghCustomerRoznamePicServices.Insert(agentSandoghCustomerRoznamePic);
+                }
+            }
+            //return RedirectToAction("Index");
+            return Json(new { isExist = false }, JsonRequestBehavior.AllowGet);
+        }
